@@ -1,0 +1,105 @@
+---
+title       : Mapping San Francisco Crime
+subtitle    : A Shiny App
+author      : Stephanie Roark
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+<style>
+.title-slide {
+  background-color: #EEEB7D;
+}
+</style>
+
+## Mapping Crime in San Francisco
+
+### - The SF Crime App displays a map of San Francisco with a crime heat map overalyed.
+
+
+### - The App gives the user a view of the most common locations for each category of crime in San Francisco.
+
+
+### - After choosing a category, the app generates a map of the location of each type of crime.
+
+---
+
+## Compare geographical distribution between sixteen crime categories
+
+<div class='left' style='float:left;width:48%'>
+- Arson<br/> 
+- Assault<br/>
+- Bribery<br/>
+- Burglary<br/> 
+- Driving Under the Influence<br/>
+- Drug/Narcotic<br/>
+- Embezzlement<br/>
+- Extortion
+</div>    
+<div class='right' style='float:right;width:48%'>
+- Fraud<br/>
+- Gambling<br/>
+- Larceny/Theft<br/>
+- Prostitution<br/>
+- Robbery<br/>
+- Sex Offenses<br/>
+- Suicide<br/>
+- Vehicle Theft
+</div>
+
+---
+
+## Example of how crime locations differs by category
+
+Here are the maps for where Arson and Prostituion arrests occur most often.
+
+```{r echo=FALSE, message=FALSE}
+library(ggmap)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(lubridate)
+
+sf_crime <- read_csv("train.csv")
+
+sf_crime <- sf_crime %>% mutate(month = month(Dates), year=year(Dates)) %>%
+    filter( Y < 38 )
+
+
+left <- -122.52
+bottom <- 37.70
+right <- -122.35
+top <- 37.82
+location <-  c(left, bottom, right, top)
+sf_osm <- get_map(location = location, color = "bw", source = "osm")
+SFMap <- ggmap(sf_osm)
+```
+```{r echo=FALSE, fig.height=7, fig.width=12, fig.align='center'}
+SFMap + 
+                stat_density2d(
+                    aes(x=X, y=Y, fill = ..level.., alpha=..level..), 
+                    geom = "polygon", n=100, 
+                    data = sf_crime %>% filter( Category %in% c("ARSON","PROSTITUTION" ))
+                ) +
+                scale_fill_gradient(low = "yellow", high = "red") +
+                scale_alpha(range = c(0.25, 0.5), guide = FALSE) +
+                theme(legend.position = "none", axis.title = element_blank(), 
+                text = element_text(size = 12)) +
+                facet_wrap(~Category)
+```
+
+
+---
+
+## The San Francisco Crime App can help to keep us safe
+
+### - Being aware of the most common locations for crimes to occur can allow a visitor to San Francisco to safely enjoy the city to the fullest.
+
+### - The SF Crime App allows users to look for the crime hot spots in the city.
+
+### - Examining the crime heat maps can also show trends in the different types of crimes occuring around the city.
